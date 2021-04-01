@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Enterprise TODO App</title>
+    <meta name="description" content="The HTML5 Herald">
+    <meta name="author" content="SitePoint">
+    <style>
+        body {
+            margin: 0 auto;
+            width: 400px;
+        }
+        h1 {
+            text-align: center;
+        }
+        .todo-list {
+            display: flex;
+            flex-direction: column;
+        }
+        .todo-item {
+            margin: 3px 0;
+            padding: 12px 10px;
+            border-bottom: #c3c3c3 1px solid;
+            word-break: break-all;
+        }
+        .todo-list:last-child {
+            border: none;
+        }
+        .new-todo {
+            padding: 18px;
+        }
+        .form-group {
+            padding-bottom: 12px;
+        }
+        .form-group input, .form-group textarea {
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+<script>
+    (async () => {
+        document.body.innerHTML = (await Promise.all(Object.entries({
+            title: async () => `<h1>Enterprise TODO App</h1>`,
+            todoList: async () => {
+                const items = await (await fetch('/todo-1.0/api/item')).json()
+                const result = items
+                    .map(x => `<div class="todo-item">#${x.id}<br>Title: ${x.title}<br>Content: ${x.content}</div>`)
+                    .join('')
+                return `<div class="todo-list">${result}</div>`
+            },
+            todoSubmit: async (ctx, path) => {
+                ctx.submitTodo = async function (e) {
+                    const todoItem = {}
+                    Object.values(e.target).forEach(elem => todoItem[elem.name] = elem.value)
+                    fetch('/todo-1.0/api/item', {
+                        method: 'POST',
+                        body: JSON.stringify(todoItem),
+                        headers: { 'content-type': 'application/json' }
+                    }).catch(console.log)
+
+                    location.reload()
+                    e.preventDefault()
+                    return false
+                }
+                return `
+                    <form class="new-todo" onsubmit="${path}.submitTodo(event)">
+                        <div class="form-group">
+                            <input type="text" name="title" placeholder="title">
+                        </div>
+                        <div class="form-group">
+                            <textarea name="content" placeholder="content"></textarea>
+                        </div>
+                        <input type="submit">
+                    </form>`
+            },
+        }).map(async ([componentName, render]) => {
+            const context = window[componentName] = {}
+            const path = `window.${componentName}`
+            return render(context, path)
+        }))).join('')
+    })()
+</script>
+</body>
+</html>
