@@ -40,8 +40,7 @@
 <body>
 <script>
     (async () => {
-        document.body.innerHTML = (await Promise.all(Object.entries({
-            title: async () => `<h1>Enterprise TODO App</h1>`,
+        const components = {
             todoList: async () => {
                 const items = await (await fetch('/todo-1.0/api/item')).json()
                 const result = items
@@ -74,11 +73,28 @@
                         <input type="submit">
                     </form>`
             },
-        }).map(async ([componentName, render]) => {
-            const context = window[componentName] = {}
-            const path = `window.${componentName}`
-            return render(context, path)
-        }))).join('')
+        }
+
+        const render = async (html) => {
+            let match
+            const nextComponentRx = new RegExp(`<(${Object.keys(components).join('|')})\\s*\/>`)
+            while ((match = nextComponentRx.exec(html)) !== null) {
+                const [tag, name] = match
+                if (name in components){
+                    const [before, after] = html.split(tag, 2)
+                    const context = window[name] = {}
+                    const path = `window.${name}`
+                    html = before + (await components[name](context, path)) + after
+                }
+            }
+            return html
+        }
+
+        document.body.innerHTML = await render(`
+            <h1>Enterprise TODO App</h1>
+            <todoList/>
+            <todoSubmit/>
+        `)
     })()
 </script>
 </body>
