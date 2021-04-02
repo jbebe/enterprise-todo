@@ -8,13 +8,17 @@ public class TodoItem {
     public String title;
     public String content;
 
-    public TodoItem(TodoItemRequest itemRequest) {
-        id = Utils.generateId();
+    public TodoItem(TodoItemRequest itemRequest, String id) {
+        this.id = id;
         title = itemRequest.title;
         content = itemRequest.content;
     }
 
-    public void merge(TodoItem todoItem) {
+    public TodoItem(TodoItemRequest itemRequest) {
+        this(itemRequest, Utils.generateId());
+    }
+
+    public void merge(TodoItemRequest todoItem) {
         title = todoItem.title;
         content = todoItem.content;
     }

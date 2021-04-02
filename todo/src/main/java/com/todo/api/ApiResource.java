@@ -27,9 +27,10 @@ public class ApiResource {
     }
 
     @PUT
-    public void updateItem(TodoItem todoItem) {
-        TodoItem dbItem = getSingleItem(todoItem.id);
-        dbItem.merge(todoItem);
+    @Path("/{id}")
+    public void updateItem(@PathParam("id") String itemId, TodoItemRequest todoItemRequest) {
+        TodoItem dbItem = getSingleItem(itemId);
+        dbItem.merge(todoItemRequest);
     }
 
     @POST
